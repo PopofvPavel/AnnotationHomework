@@ -32,16 +32,17 @@ public class Context {
     public Object get(String className) throws NoSuchMethodException, InvocationTargetException, InstantiationException, IllegalAccessException {
         validateClassName(className);
         Class<?> clazz = loadedClasses.get(className);
-        Optional<Constructor<?>> annotatedConstructor = getAnnotatedConstructor(className, clazz);
+        Optional<Constructor<?>> annotatedConstructor = createObjectByAnnotatedConstructor(className, clazz);
 
         if (annotatedConstructor.isPresent()) {
-            return getAnnotatedConstructor(annotatedConstructor);
+            return createObjectByAnnotatedConstructor(annotatedConstructor);
         } else {
-            return getDefaultConstructor(clazz);
+            return createObjectByDefaultConstructor(clazz);
         }
     }
 
-    private Object getDefaultConstructor(Class<?> clazz) throws NoSuchMethodException, InvocationTargetException, InstantiationException, IllegalAccessException {
+    private Object
+    createObjectByDefaultConstructor(Class<?> clazz) throws NoSuchMethodException, InvocationTargetException, InstantiationException, IllegalAccessException {
         var object = clazz.getConstructor().newInstance();
 
         var fields = Arrays
@@ -59,7 +60,7 @@ public class Context {
         return object;
     }
 
-    private Object getAnnotatedConstructor(Optional<Constructor<?>> annotatedConstructor) throws InstantiationException, IllegalAccessException, InvocationTargetException {
+    private Object createObjectByAnnotatedConstructor(Optional<Constructor<?>> annotatedConstructor) throws InstantiationException, IllegalAccessException, InvocationTargetException {
         var constructor = annotatedConstructor.get();
         var parameterTypes = constructor.getParameterTypes();
         var params = Arrays.stream(parameterTypes)
@@ -76,7 +77,7 @@ public class Context {
         return constructor.newInstance(params.toArray());
     }
 
-    private Optional<Constructor<?>> getAnnotatedConstructor(String className, Class<?> clazz) {
+    private Optional<Constructor<?>> createObjectByAnnotatedConstructor(String className, Class<?> clazz) {
         var constructors = clazz.getDeclaredConstructors();
         return Arrays.stream(constructors)
                 .filter(con -> con.isAnnotationPresent(Autowired.class))
