@@ -32,7 +32,7 @@ public class Context {
     public Object get(String className) throws NoSuchMethodException, InvocationTargetException, InstantiationException, IllegalAccessException {
         validateClassName(className);
         Class<?> clazz = loadedClasses.get(className);
-        Optional<Constructor<?>> annotatedConstructor = createObjectByAnnotatedConstructor(className, clazz);
+        Optional<Constructor<?>> annotatedConstructor = getAnnotatedConstructor(className, clazz);
 
         if (annotatedConstructor.isPresent()) {
             return createObjectByAnnotatedConstructor(annotatedConstructor);
@@ -77,7 +77,7 @@ public class Context {
         return constructor.newInstance(params.toArray());
     }
 
-    private Optional<Constructor<?>> createObjectByAnnotatedConstructor(String className, Class<?> clazz) {
+    private Optional<Constructor<?>> getAnnotatedConstructor(String className, Class<?> clazz) {
         var constructors = clazz.getDeclaredConstructors();
         return Arrays.stream(constructors)
                 .filter(con -> con.isAnnotationPresent(Autowired.class))
